@@ -1,66 +1,59 @@
 <?php
-// ==================== SHobid ROOT INDEX - BIZTONSÁGOS VERZIÓ ====================
+// ==================== SHobid ROOT INDEX - ULTRA BIZTONSÁGOS ====================
 
+// Hiba mutatása csak fejlesztéshez (élesben tedd false-ra)
+ini_set('display_errors', 1);
 error_reporting(E_ALL);
-ini_set('display_errors', 0);   // élesben ne mutassa a hibát
 
-include __DIR__ . '/global/markets.php';
-
-// Alap adatok
-$countries = shobidMarketList ? shobidMarketList() : [];
-$availableCodes = [];
-
-foreach ($countries as $c) {
-    if (!empty($c['available']) && !empty($c['code'])) {
-        $availableCodes[] = strtolower($c['code']);
-    }
+try {
+    include __DIR__ . '/global/markets.php';
+} catch (Throwable $e) {
+    // Ha bármi hiba van az include-ban, akkor is fusson tovább
 }
 
 $forceSelector = isset($_GET['country_selector']) && $_GET['country_selector'] == '1';
 
-// 1. Cookie alapú redirect (ha már volt választás)
+// Cookie alapú emlékezés (ha van)
 if (!$forceSelector && isset($_COOKIE['shobid_market'])) {
     $market = strtolower(trim($_COOKIE['shobid_market']));
-    if (in_array($market, $availableCodes)) {
+    if ($market !== '' && in_array($market, ['hu-hu', 'de-de', 'pl-pl', 'sk-sk', 'cz-cz'])) {
         header("Location: /$market/index.php", true, 302);
         exit;
     }
 }
 
-// 2. Auto detect (IP alapján)
-$marketCode = 'hu-hu'; // alapértelmezett Magyarország
+// Alapértelmezett Magyarország
+$marketCode = 'hu-hu';
 
-// Próbáljuk meg a meglévő detect függvényeket (ha léteznek)
-if (function_exists('shobidDetectCountryCodeFromRequest')) {
+// Auto detect ha van függvény
+if (!$forceSelector && function_exists('shobidDetectCountryCodeFromRequest')) {
     $detected = shobidDetectCountryCodeFromRequest();
     
     $mapping = [
-        'HU' => 'hu-hu', 'DE' => 'de-de', 'PL' => 'pl-pl',
-        'SK' => 'sk-sk', 'CZ' => 'cz-cz', 'HR' => 'hr-hr',
-        'RO' => 'ro-ro', 'AT' => 'au-au', 'GB' => 'uk-uk', 
-        'UK' => 'uk-uk'
+        'HU' => 'hu-hu',
+        'DE' => 'de-de',
+        'PL' => 'pl-pl',
+        'SK' => 'sk-sk',
+        'CZ' => 'cz-cz',
+        'HR' => 'hr-hr',
+        'RO' => 'ro-ro'
     ];
     
-    if ($detected !== '' && isset($mapping[$detected])) {
-        $tryMarket = strtolower($mapping[$detected]);
-        if (in_array($tryMarket, $availableCodes)) {
-            $marketCode = $tryMarket;
-        }
+    if (isset($mapping[$detected])) {
+        $marketCode = $mapping[$detected];
     }
 }
 
-// 3. Redirect ha talált támogatott országot
-if (!$forceSelector && $marketCode !== '') {
+// Redirect
+if (!$forceSelector) {
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-    
-    // Régi setcookie szintaxis (hogy régebbi PHP-n is menjen)
     setcookie('shobid_market', $marketCode, time() + 31536000, '/', '', $isHttps, true);
     
     header("Location: /$marketCode/index.php", true, 302);
     exit;
 }
 
-// ====================== ORSZÁGVÁLASZTÓ OLDAL ======================
+// Ha forceSelector = 1 vagy valami hiba történt → országválasztó
 ?>
 <!DOCTYPE html>
 <html lang="hu">
@@ -69,28 +62,23 @@ if (!$forceSelector && $marketCode !== '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shobid - Országválasztó</title>
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #0f0f0f;
-            color: #ffffff;
-            text-align: center;
-            padding: 60px 20px;
-        }
-        .card {
-            max-width: 620px;
-            margin: 0 auto;
-            background: #1a1a1a;
-            padding: 50px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        h1 { color: #00ff00; margin-bottom: 10px; }
-        p { font-size: 18px; line-height: 1.5; }
+        body {font-family: Arial, sans-serif; background:#111; color:#fff; text-align:center; padding:80px 20px;}
+        .card {max-width:700px; margin:0 auto; background:#1f1f1f; padding:50px; border-radius:16px;}
+        h1 {color:#0f0;}
         .option {
-            display: inline-block;
-            margin: 12px;
-            padding: 18px 30px;
-            background: #222;
-            color: white;
-            text-decoration: none;
-            font
+            display:inline-block; margin:10px; padding:20px 30px; background:#222; 
+            color:white; text-decoration:none; font-size:18px; border-radius:10px;
+        }
+        .option:hover {background:#0a0;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Országválasztó</h1>
+        <p>Válassz országot:</p>
+        <a class="option" href="/hu-hu/index.php">🇭🇺 Magyarország</a><br><br>
+        <a class="option" href="/de-de/index.php">🇩🇪 Németország</a><br><br>
+        <a class="option" href="/pl-pl/index.php">🇵🇱 Lengyelország</a>
+    </div>
+</body>
+</html>
