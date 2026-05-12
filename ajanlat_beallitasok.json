@@ -1,0 +1,26 @@
+{
+    "licit_max_ora": 24,
+    "fix_max_ora": 24,
+    "vat_by_country_percent": {
+        "hu-hu": 27,
+        "de-de": 19,
+        "pl-pl": 23,
+        "sk-sk": 23,
+        "cz-cz": 21,
+        "au-au": 20,
+        "hr-hr": 25,
+        "ro-ro": 19,
+        "uk-uk": 20
+    },
+    "card_fee_percent_by_country": {
+        "hu-hu": 2.2,
+        "de-de": 2,
+        "pl-pl": 1.95,
+        "sk-sk": 1.95,
+        "cz-cz": 1.95,
+        "au-au": 2,
+        "hr-hr": 1.9,
+        "ro-ro": 2,
+        "uk-uk": 2.8
+    }
+}
